@@ -84,14 +84,19 @@ def get_core_stats(admin: Admin = Depends(Admin.get_current)):
 @app.post("/api/core/restart", tags=["Core"])
 def restart_core(admin: Admin = Depends(Admin.get_current)):
     if not admin.is_sudo:
-        raise HTTPException(status_code=403, detail="You're not allowed")
+        raise HTTPException(status_code=403, detail="You're not allowed to perform this action")
 
-    startup_config = xray.config.include_db_users()
-    xray.core.restart(startup_config)
-    for node_id, node in list(xray.nodes.items()):
-        if node.connected:
-            xray.operations.restart_node(node_id, startup_config)
-    return {}
+    try:
+        startup_config = xray.config.include_db_users()
+        xray.core.restart(startup_config)
+
+        for node_id, node in list(xray.nodes.items()):
+            if node.connected:
+                xray.operations.restart_node(node_id, startup_config)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Core restart failed: {str(e)}")
+
+    return {"detail": "Core and nodes restarted successfully"}
 
 
 @app.get("/api/core/config", tags=["Core"])
