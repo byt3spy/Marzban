@@ -31,8 +31,9 @@ def validate_telegram_id(value: Union[int, str]) -> Union[int, None]:
 def validate_discord_webhook(value: str) -> Union[str, None]:
     if not value or value == "0":
         return ""
-    if not value.startswith("https://discord.com"):
-        utils.error("Discord webhook must start with 'https://discord.com'")
+    valid_prefixes = ["https://discord.com", "https://canary.discord.com", "https://ptb.discord.com"]
+    if not any(value.startswith(prefix) for prefix in valid_prefixes):
+        raise ValueError("Discord webhook must start with 'https://discord.com', 'https://canary.discord.com', or 'https://ptb.discord.com'")
     return value
 
 
